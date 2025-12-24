@@ -8,6 +8,19 @@
 
 #include "Util.hpp"
 
+#ifndef vsnprintf
+extern "C" {
+extern int remcpe_vsnprintf(char *, size_t, const char *, va_list ap) asm(
+#ifdef __APPLE__
+		"_vsnprintf"
+#else
+		"vsnprintf"
+#endif
+		);
+}
+#define vsnprintf remcpe_vsnprintf
+#endif
+
 const std::string Util::EMPTY_STRING = "";
 
 std::string Util::stringTrim(const std::string& str, const std::string& filter, bool a4, bool a5)
