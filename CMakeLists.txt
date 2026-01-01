@@ -35,6 +35,7 @@ if(MCPE_WIN32)
 else()
     set(CMAKE_CXX_STANDARD 98)
 endif()
+set(CMAKE_C_STANDARD 99)
 
 # HaikuOS Network Library
 if(HAIKU)
