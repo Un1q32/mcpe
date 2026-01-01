@@ -760,6 +760,7 @@
     <ClCompile Include="$(MC_ROOT)\source\client\sound\SoundEngine.cpp" />
     <ClCompile Include="$(MC_ROOT)\source\client\sound\SoundRepository.cpp" />
     <ClCompile Include="$(MC_ROOT)\source\client\sound\SoundSystem.cpp" />
+    <ClCompile Include="$(MC_ROOT)\source\common\vsnprintf.c" />
     <ClCompile Include="$(MC_ROOT)\source\common\CThread.cpp" />
     <ClCompile Include="$(MC_ROOT)\source\common\Matrix.cpp" />
     <ClCompile Include="$(MC_ROOT)\source\common\Mth.cpp" />
