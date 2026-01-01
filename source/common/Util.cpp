@@ -10,13 +10,7 @@
 
 #ifndef vsnprintf
 extern "C" {
-extern int remcpe_vsnprintf(char *, size_t, const char *, va_list ap) asm(
-#ifdef __APPLE__
-		"_vsnprintf"
-#else
-		"vsnprintf"
-#endif
-		);
+extern int remcpe_vsnprintf(char *, size_t, const char *, va_list ap);
 }
 #define vsnprintf remcpe_vsnprintf
 #endif
