@@ -20,6 +20,7 @@
 #define noexcept
 #endif
 #ifndef vsnprintf
+#include <stdarg.h>
 extern "C" {
 extern int remcpe_vsnprintf(char *, size_t, const char *, va_list ap);
 }
