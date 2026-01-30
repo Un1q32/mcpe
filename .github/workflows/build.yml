@@ -38,14 +38,12 @@ jobs:
                 cd build
                 cmake -GNinja -DWERROR=ON ${{ matrix.flags }} ..
                 cmake --build .
-
           - uses: actions/upload-artifact@v6
             with:
-              name: Linux
+              name: Linux (${{ matrix.name }})
               path: |
                 build/reminecraftpe
                 build/assets
-
 
     wasm:
         name: WASM
@@ -61,7 +59,6 @@ jobs:
                 sudo apt-get install --no-install-recommends -y cmake ninja-build
           - name: Build
             run: ./build-wasm.sh -DWERROR=ON
-
 
     macos:
         strategy:
@@ -101,7 +98,6 @@ jobs:
                 -quiet \
                 clean archive
 
-
     ios:
         name: iOS
         runs-on: ubuntu-24.04
@@ -125,12 +121,10 @@ jobs:
               RANLIB: llvm-ranlib-21
               LLVM_CONFIG: llvm-config-21
               WERROR: ON
-
           - uses: actions/upload-artifact@v6
             with:
               name: iOS
               path: platforms/ios/build/ReMCPE.ipa
-
 
     android:
         strategy:
@@ -158,7 +152,6 @@ jobs:
             run: |
                 cd ${{ matrix.directory }}
                 ./gradlew build
-
 
     mingw:
         strategy:
@@ -196,7 +189,12 @@ jobs:
                 cd build
                 cmake -GNinja -DWERROR=ON -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-toolchain.cmake ${{ matrix.flags }} ..
                 cmake --build .
-
+          - uses: actions/upload-artifact@v6
+            with:
+              name: Windows (${{ matrix.name }})
+              path: |
+                build/reminecraftpe
+                build/assets
 
     switch:
         name: Nintendo Switch
