@@ -172,4 +172,4 @@ else
     codesign -s - --entitlements "$entitlements" "build/$bin"
 fi
 
-[ -n "$REMCPE_NO_IPA" ] || "$workdir/../../build-ipa.sh"
+"$workdir/../../build-ipa.sh"

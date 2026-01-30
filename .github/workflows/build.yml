@@ -38,6 +38,13 @@ jobs:
                 cd build
                 cmake -GNinja -DWERROR=ON ${{ matrix.flags }} ..
                 cmake --build .
+
+          - uses: actions/upload-artifact@v4
+            with:
+              name: Linux
+              path: build/reminecraftpe build/assets
+
+
     wasm:
         name: WASM
         runs-on: ubuntu-24.04
@@ -52,6 +59,8 @@ jobs:
                 sudo apt-get install --no-install-recommends -y cmake ninja-build
           - name: Build
             run: ./build-wasm.sh -DWERROR=ON
+
+
     macos:
         strategy:
             fail-fast: false
@@ -88,7 +97,9 @@ jobs:
                 -destination generic/platform=macOS \
                 GCC_PREPROCESSOR_DEFINITIONS='$(GCC_PREPROCESSOR_DEFINITIONS)' \
                 -quiet \
-                clean archive 
+                clean archive
+
+
     ios:
         name: iOS
         runs-on: ubuntu-24.04
@@ -111,8 +122,14 @@ jobs:
               AR: llvm-ar-21
               RANLIB: llvm-ranlib-21
               LLVM_CONFIG: llvm-config-21
-              REMCPE_NO_IPA: 1
               WERROR: ON
+
+          - uses: actions/upload-artifact@v4
+            with:
+              name: iOS
+              path: platforms/ios/build/ReMCPE.ipa
+
+
     android:
         strategy:
             fail-fast: false
@@ -139,6 +156,8 @@ jobs:
             run: |
                 cd ${{ matrix.directory }}
                 ./gradlew build
+
+
     mingw:
         strategy:
             fail-fast: false
@@ -175,6 +194,8 @@ jobs:
                 cd build
                 cmake -GNinja -DWERROR=ON -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-toolchain.cmake ${{ matrix.flags }} ..
                 cmake --build .
+
+
     switch:
         name: Nintendo Switch
         runs-on: ubuntu-24.04
