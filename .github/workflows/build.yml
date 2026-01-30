@@ -39,7 +39,7 @@ jobs:
                 cmake -GNinja -DWERROR=ON ${{ matrix.flags }} ..
                 cmake --build .
 
-          - uses: actions/upload-artifact@v4
+          - uses: actions/upload-artifact@v6
             with:
               name: Linux
               path: build/reminecraftpe
@@ -124,7 +124,7 @@ jobs:
               LLVM_CONFIG: llvm-config-21
               WERROR: ON
 
-          - uses: actions/upload-artifact@v4
+          - uses: actions/upload-artifact@v6
             with:
               name: iOS
               path: platforms/ios/build/ReMCPE.ipa
