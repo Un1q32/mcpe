@@ -193,7 +193,7 @@ jobs:
             with:
               name: Windows (${{ matrix.name }})
               path: |
-                build/reminecraftpe
+                build/reminecraftpe.exe
                 build/assets
 
     switch:
