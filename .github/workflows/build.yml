@@ -216,4 +216,6 @@ jobs:
           - uses: actions/upload-artifact@v6
             with:
               name: Nintendo Switch
-              path: build/platforms/sdl/sdl2/reminecraftpe.nro
+              path: |
+                build/platforms/sdl/sdl2/reminecraftpe.nro
+                build/assets
