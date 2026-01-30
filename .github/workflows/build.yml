@@ -38,6 +38,12 @@ jobs:
                 cd build
                 cmake -GNinja -DWERROR=ON ${{ matrix.flags }} ..
                 cmake --build .
+          - uses: actions/upload-artifact@v6
+            with:
+              name: Linux (${{ matrix.name }})
+              path: |
+                build/reminecraftpe
+                build/assets
 
     wasm:
         name: WASM
@@ -119,8 +125,11 @@ jobs:
               AR: llvm-ar-21
               RANLIB: llvm-ranlib-21
               LLVM_CONFIG: llvm-config-21
-              REMCPE_NO_IPA: 1
               WERROR: ON
+          - uses: actions/upload-artifact@v6
+            with:
+              name: iOS
+              path: platforms/ios/build/ReMCPE.ipa
 
     android:
         strategy:
@@ -185,6 +194,12 @@ jobs:
                 cd build
                 cmake -GNinja -DWERROR=ON -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-toolchain.cmake ${{ matrix.flags }} ..
                 cmake --build .
+          - uses: actions/upload-artifact@v6
+            with:
+              name: Windows (${{ matrix.name }})
+              path: |
+                build/reminecraftpe.exe
+                build/assets
 
     switch:
         name: Nintendo Switch
