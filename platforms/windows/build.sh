@@ -44,8 +44,10 @@ if [ "$(cat "toolchain-$arch/toolchainver" 2>/dev/null)" != "$toolchainver" ]; t
         (x86_64)
             winnt=0x0501 # Windows XP
         ;;
-        (arm64)
-            winnt=0x0A00 # Windows 10
+        (arm64|aarch64)
+            printf 'aarch64 builds are currently unsupported.\n'
+            exit 1
+            # winnt=0x0A00 # Windows 10
         ;;
         (*)
             printf 'Unknown architecture!\n'
