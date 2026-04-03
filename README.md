@@ -141,14 +141,14 @@ You will need to install the following dependencies
 Then run
 
 ```sh
-# for 64 bit machines
+# to build for 64 bit machines
 export ARCH=x86_64
-# for pentium pro or newer
+# to build for pentium pro or newer
 export ARCH=i686
 # CPUs older than the pentium pro will likely have unplayable performance but will build.
-# for pentium or newer
+# to build for pentium or newer
 export ARCH=i586
-# for i486 or newer
+# to build for i486 or newer
 export ARCH=i486
 
 # (macOS only) if gmp, mpfr, and mpc were installed from homebrew
