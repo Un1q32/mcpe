@@ -79,7 +79,7 @@ if [ "$(cat "toolchain-$arch/toolchainver" 2>/dev/null)" != "$toolchainver" ]; t
     cd "mingw-w64-v$mingw_version/mingw-w64-headers"
     ./configure \
         --host="$target" \
-        --prefix="$workdir/toolchain-$arch/$arch-w64-mingw32" \
+        --prefix="$workdir/toolchain-$arch/$target" \
         --with-default-win32-winnt="$winnt" \
         --with-default-msvcrt=msvcrt-os
     make -j"$ncpus" install
@@ -117,7 +117,7 @@ if [ "$(cat "toolchain-$arch/toolchainver" 2>/dev/null)" != "$toolchainver" ]; t
     cd "mingw-w64-v$mingw_version/mingw-w64-crt"
     ./configure \
         --host="$target" \
-        --prefix="$workdir/toolchain-$arch/$arch-w64-mingw32" \
+        --prefix="$workdir/toolchain-$arch/$target" \
         --with-default-win32-winnt="$winnt" \
         --with-default-msvcrt=msvcrt-os
     make -j1
