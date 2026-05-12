@@ -59,8 +59,8 @@ static void initPlatform()
 
     // disable buffering for stdout, so we don't lose our logs when abort is called
     setbuf(stdout, NULL);
-    freopen("reminecraftpe.stdout.log", "w", stdout);
-    freopen("reminecraftpe.stderr.log", "w", stderr);
+    freopen("nbcraft.stdout.log", "w", stdout);
+    freopen("nbcraft.stderr.log", "w", stderr);
 #endif
 }
 
@@ -69,7 +69,6 @@ static void preInitGraphics()
 #if MCE_GFX_API_OGL
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#else
 #endif
 }
 
@@ -78,7 +77,7 @@ static void initGraphics()
 #if MCE_GFX_API_OGL
     if (!mce::Platform::OGL::InitBindings())
     {
-        LOG_E("Error initializing GL extensions. OpenGL 2.0 or later is required.");
+        LOG_E(mce::Platform::OGL::ERROR_MSG);
         exit(EXIT_FAILURE);
     }
 #endif
@@ -86,35 +85,33 @@ static void initGraphics()
 
 static std::string getStoragePath()
 {
-    // Doing this as a c-string because worst-case, an SDK
-    // will return a nullptr instead of an empty string
-    const char* pathBase;
+    std::string path;
+    const char *tmp;
 #ifdef _WIN32
-    pathBase = getenv("APPDATA");
+    tmp = getenv("APPDATA");
+    if (tmp)
+        path = tmp;
+#elif MC_PLATFORM_MAC
+    tmp = getenv("HOME");
+    if (tmp)
+        path = std::string(tmp) + "/Library/Application Support";
 #else
-    const char *xdg_data = getenv("XDG_DATA_HOME");
-    if (xdg_data)
-        pathBase = xdg_data;
+    tmp = getenv("XDG_DATA_HOME");
+    if (tmp)
+        path = tmp;
     else
     {
-        xdg_data = getenv("HOME");
-        if (!xdg_data)
-        {
-            LOG_E("HOME not set");
-            pathBase = ""; // current working directory
-        }
+        tmp = getenv("HOME");
+        if (tmp)
+            path = std::string(tmp) + "/.local/share";
         else
-            pathBase = ((std::string)xdg_data + "/.local/share").c_str();
+            LOG_E("HOME not set");
     }
 #endif
 
-    if (!pathBase)
-        pathBase = ""; // just use the current working directory
-
-    std::string path(pathBase);
     if (!path.empty())
         path += "/";
-    path += ".reminecraftpe";
+    path += C_STORAGE_DIR;
 
     return path;
 }
@@ -270,7 +267,7 @@ int main(int argc, char* argv[])
     
     SDL_EnableUNICODE(SDL_TRUE);
 
-	SDL_WM_SetCaption("ReMinecraftPE", nullptr);
+	SDL_WM_SetCaption(C_GAME_NAME, nullptr);
     //LOG_I("Setting SDL video mode...");
     // XENON: width and height need to be accurate to what's already set by the console,
     // or else libXenon will crash.

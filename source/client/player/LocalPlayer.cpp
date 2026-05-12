@@ -156,7 +156,7 @@ void LocalPlayer::openContainer(Container* container)
 void LocalPlayer::closeContainer()
 {
 	Player::closeContainer();
-	m_pMinecraft->m_pGameMode->handleCloseInventory(m_pContainerMenu->m_containerId, this);
+	m_pMinecraft->getLocalPlayerGameMode()->handleCloseInventory(m_pContainerMenu->m_containerId, this);
 	m_pMinecraft->setScreen(nullptr);
 }
 
@@ -206,7 +206,7 @@ void LocalPlayer::hurtTo(int newHealth)
 
 void LocalPlayer::calculateFlight(const Vec3& pos)
 {
-	float f1 = m_pMinecraft->getOptions()->field_244;
+	float f1 = m_pMinecraft->getOptions()->m_flySpeed;
 	float x1 = f1 * pos.x;
 	float z1 = f1 * pos.z;
 

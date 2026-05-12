@@ -46,7 +46,6 @@ static void preInitGraphics()
 #endif
 	// Double-Buffering
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#else
 #endif
 }
 
@@ -72,12 +71,10 @@ static void initGraphics()
 
 	if (!mce::Platform::OGL::InitBindings())
 	{
-		const char* const GL_ERROR_MSG = "Error initializing GL extensions. OpenGL 2.0 or later is required. Update your graphics drivers!";
-		LOG_E(GL_ERROR_MSG);
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "OpenGL Error", GL_ERROR_MSG, window);
+		LOG_E(mce::Platform::OGL::ERROR_MSG);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "OpenGL Error", mce::Platform::OGL::ERROR_MSG, window);
 		exit(EXIT_FAILURE);
 	}
-#else
 #endif
 }
 
@@ -85,7 +82,6 @@ static void teardownGraphics()
 {
 #if MCE_GFX_API_OGL
 	SDL_GL_DeleteContext(glContext);
-#else
 #endif
 }
 
@@ -308,7 +304,6 @@ static void resize()
 #if MCE_GFX_API_OGL
 	SDL_GL_GetDrawableSize(window,
 		&drawWidth, &drawHeight);
-#else
 #endif
 	
 	int windowWidth, windowHeight;
@@ -392,7 +387,7 @@ int main(int argc, char *argv[])
 #endif
 
 	// Create Window
-	window = SDL_CreateWindow("ReMinecraftPE", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Minecraft::width, Minecraft::height, VIDEO_FLAGS);
+	window = SDL_CreateWindow(C_GAME_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Minecraft::width, Minecraft::height, VIDEO_FLAGS);
 	if (!window)
 	{
 		LOG_E("Unable to create SDL window: %s", SDL_GetError());
@@ -410,6 +405,8 @@ int main(int argc, char *argv[])
 	std::string storagePath;
 #ifdef _WIN32
 	storagePath = getenv("APPDATA");
+#elif MC_PLATFORM_MAC
+	storagePath = std::string(getenv("HOME")) + "/Library/Application Support";
 #elif defined(__EMSCRIPTEN__) || defined(__SWITCH__)
 	storagePath = "";
 #elif defined(ANDROID)
@@ -430,7 +427,7 @@ int main(int argc, char *argv[])
 			storagePath = (std::string)xdg_data + "/.local/share";
 	}
 #endif
-	storagePath += "/.reminecraftpe";
+	storagePath += "/" C_STORAGE_DIR;
 	
 	if (!storagePath.empty())
 		createFolderIfNotExists(storagePath.c_str());

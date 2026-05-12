@@ -75,7 +75,7 @@ Minecraft::Minecraft()
 	m_pGameRenderer = nullptr;
 	m_pParticleEngine = nullptr;
 	m_pSoundEngine = nullptr;
-	m_pGameMode = nullptr;
+	memset(m_gameModes, 0, sizeof(GameMode*) * GAME_TYPES_COUNT);
 	m_pTextures = nullptr;
 	m_pFont = nullptr;
 	m_pRakNetInstance = nullptr;
@@ -123,7 +123,10 @@ Minecraft::~Minecraft()
     SAFE_DELETE(EntityRenderDispatcher::instance);
 	m_pSoundEngine->destroy();
 	SAFE_DELETE(m_pSoundEngine);
-	SAFE_DELETE(m_pGameMode);
+	for (unsigned int gameType = GAME_TYPES_MIN; gameType <= GAME_TYPES_MAX; gameType++)
+	{
+		SAFE_DELETE(m_gameModes[gameType]);
+	}
 	SAFE_DELETE(m_pFont);
 	SAFE_DELETE(m_pTextures);
 	SAFE_DELETE(m_pScreenChooser);
@@ -173,7 +176,16 @@ GameMode* Minecraft::_createGameMode(GameType gameType, Level& level)
 	}
 }
 
-void Minecraft::reloadInput()
+void Minecraft::_initGameModes(Level& level)
+{
+	for (unsigned int gameType = GAME_TYPES_MIN; gameType <= GAME_TYPES_MAX; gameType++)
+	{
+		delete m_gameModes[gameType];
+		m_gameModes[gameType] = _createGameMode((GameType)gameType, level);
+	}
+}
+
+void Minecraft::_reloadInput()
 {
 	if (m_pInputHolder)
 		delete m_pInputHolder;
@@ -206,7 +218,7 @@ void Minecraft::reloadInput()
 		m_pLocalPlayer->m_pMoveInput = m_pInputHolder->getMoveInput();
 	}
 
-	getOptions()->m_bUseMouseToBreak = !useTouchscreen();
+	getOptions()->m_bUseMouseForDigging = !isTouchscreen();
 }
 
 int Minecraft::getLicenseId()
@@ -383,15 +395,42 @@ void Minecraft::setGameMode(GameType gameType)
 {
 	if (m_pLevel)
 	{
-        SAFE_DELETE(m_pGameMode);
-		m_pGameMode = _createGameMode(gameType, *m_pLevel);
-		m_pGameMode->initLevel(m_pLevel);
+		GameMode* pGameMode = m_gameModes[gameType];
+		pGameMode->initLevel(m_pLevel);
 	}
+}
+
+GameMode* Minecraft::getLevelGameMode() const
+{
+	if (!m_pLevel)
+		return nullptr;
+
+	GameType gameType = m_pLevel->getDefaultGameType();
+
+	return m_gameModes[gameType];
+}
+
+GameMode* Minecraft::getPlayerGameMode(Player& player) const
+{
+	GameType gameType = player.getPlayerGameType();
+
+	return m_gameModes[gameType];
+}
+
+GameMode* Minecraft::getLocalPlayerGameMode() const
+{
+	if (m_pLocalPlayer)
+		return getPlayerGameMode(*m_pLocalPlayer);
+	else if (m_pLevel)
+		return m_gameModes[m_pLevel->getLoadedPlayerGameType()];
+
+	return nullptr;
 }
 
 void Minecraft::handleBuildAction(const BuildActionIntention& action)
 {
 	LocalPlayer* player = m_pLocalPlayer;
+	GameMode* pGameMode = getLocalPlayerGameMode();
 	bool canInteract = getTimeMs() - m_lastInteractTime >= 200;
 	// This logic is present in 0.9.0, but just does not make any sense being here.
 	//if (player->isUsingItem()) return;
@@ -401,9 +440,9 @@ void Minecraft::handleBuildAction(const BuildActionIntention& action)
 		player->swing();
 	}
 	
-	if (!action.isDestroy() && !m_pGameMode->field_8) // from Minecraft::handleMouseDown
+	if (!action.isDestroy() && !pGameMode->m_bInstaBuild) // from Minecraft::handleMouseDown
 	{
-		m_pGameMode->stopDestroyBlock();
+		pGameMode->stopDestroyBlock();
 	}
 
 	if (!action.isInteract()) m_lastInteractTime = 0;
@@ -417,7 +456,7 @@ void Minecraft::handleBuildAction(const BuildActionIntention& action)
 			if (action.isAttack())
 			{
 				m_pRakNetInstance->send(new InteractPacket(player->m_EntityID, pTarget->m_EntityID, InteractPacket::ATTACK));
-				m_pGameMode->attack(player, pTarget);
+				pGameMode->attack(player, pTarget);
 				m_lastBlockBreakTime = getTimeMs();
 			}
 			else if (action.isInteract() && canInteract)
@@ -426,7 +465,7 @@ void Minecraft::handleBuildAction(const BuildActionIntention& action)
 					bInteract = false;
 
 				m_pRakNetInstance->send(new InteractPacket(player->m_EntityID, pTarget->m_EntityID, InteractPacket::INTERACT));
-				m_pGameMode->interact(player, pTarget);
+				pGameMode->interact(player, pTarget);
 				m_lastInteractTime = getTimeMs();
 			}
 			break;
@@ -449,16 +488,16 @@ void Minecraft::handleBuildAction(const BuildActionIntention& action)
 				// @BUG: Hits sometimes pass through fire when done from above
 				//if (extinguished) break;
 
-				if (pTile != Tile::unbreakable || (player->field_B94 >= 100 && !m_hitResult.m_bUnk24))
+				if (pTile != Tile::unbreakable || (player->m_userType >= 100 && !m_hitResult.m_bUnk24))
 				{
 					bool destroyed = false;
 					if (action.isDestroyStart())
 					{
-						destroyed = m_pGameMode->startDestroyBlock(player, m_hitResult.m_tilePos, m_hitResult.m_hitSide);
+						destroyed = pGameMode->startDestroyBlock(player, m_hitResult.m_tilePos, m_hitResult.m_hitSide);
 						player->startDestroying();
 					}
 
-					bool contDestory = m_pGameMode->continueDestroyBlock(player, m_hitResult.m_tilePos, m_hitResult.m_hitSide);
+					bool contDestory = pGameMode->continueDestroyBlock(player, m_hitResult.m_tilePos, m_hitResult.m_hitSide);
 
 					destroyed = destroyed || contDestory;
 					m_pParticleEngine->crack(m_hitResult.m_tilePos, m_hitResult.m_hitSide);
@@ -481,30 +520,13 @@ void Minecraft::handleBuildAction(const BuildActionIntention& action)
 			else if (action.isPlace() && canInteract)
 			{
 				ItemStack& item = getSelectedItem();
-				if (m_pGameMode->useItemOn(player, m_pLevel, item, m_hitResult.m_tilePos, m_hitResult.m_hitSide))
+				if (pGameMode->useItemOn(player, m_pLevel, item, m_hitResult.m_tilePos, m_hitResult.m_hitSide))
 				{
 					bInteract = false;
 
 					player->swing();
 
 					m_lastInteractTime = getTimeMs();
-
-					if (isOnline())
-					{
-						if (item.isEmpty() || !item.getTile())
-							return;
-
-						TilePos tp(m_hitResult.m_tilePos);
-
-						Facing::Name hitSide = m_hitResult.m_hitSide;
-
-						if (m_pLevel->getTile(m_hitResult.m_tilePos) == Tile::topSnow->m_ID)
-						{
-							hitSide = Facing::DOWN;
-						}
-
-						m_pRakNetInstance->send(new PlaceBlockPacket(player->m_EntityID, tp.relative(hitSide, 1), (TileID)item.getId(), hitSide, item.getAuxValue()));
-					}
 				}
 			}
 			break;
@@ -519,7 +541,7 @@ void Minecraft::handleBuildAction(const BuildActionIntention& action)
 		if (!item.isEmpty())
 		{
 			m_lastInteractTime = getTimeMs();
-			if (m_pGameMode->useItem(player, m_pLevel, item))
+			if (pGameMode->useItem(player, m_pLevel, item))
 				m_pGameRenderer->m_pItemInHandRenderer->itemUsed();
 		}
 	}
@@ -630,7 +652,7 @@ void Minecraft::tickInput()
 #endif
 		}
 
-		if (!getOptions()->m_bUseMouseToBreak)
+		if (getOptions()->m_bUseMouseForDigging)
 			continue;
 
 		// @TODO: Replace with KeyboardBuildInput
@@ -843,7 +865,10 @@ void Minecraft::tick()
                 m_pLevel->m_difficulty = 3;
             }
             
-			m_pGameMode->tick();
+			GameMode* pGameMode = getLocalPlayerGameMode();
+			if (pGameMode)
+				pGameMode->tick();
+
 			m_pGameRenderer->tick();
 			m_pLevelRenderer->tick();
 			m_pLevel->tickEntities();
@@ -906,9 +931,9 @@ void Minecraft::update()
 
 	m_pGameRenderer->render(m_timer);
 
-	// Added by iProgramInCpp
-	if (m_pGameMode)
-		m_pGameMode->render(m_timer.m_renderTicks);
+	GameMode* pGameMode = getLocalPlayerGameMode();
+	if (pGameMode)
+		pGameMode->render(m_timer.m_renderTicks);
 
 	renderContext.endRender();
 
@@ -1097,6 +1122,7 @@ float Minecraft::getBestScaleForThisScreenSize(int width, int height)
 	}
 	else
 	{
+		// @PARITY: This is the screen scaling we use on non-touchscreen devices (minus Xboxes)
 		if (height > 1600)
 			return 1.0f / 4.0f;
 
@@ -1138,18 +1164,20 @@ void Minecraft::generateLevel(const std::string& unused, Level* pLevel)
 
 	// std::string("Level generated: "); //@QUIRK: unused string instance
 
+	GameMode* pGameMode = getLocalPlayerGameMode();
+
 	LocalPlayer* pLocalPlayer = m_pLocalPlayer;
 	if (!pLocalPlayer)
 	{
-		pLocalPlayer = m_pGameMode->createPlayer(pLevel);
+		pLocalPlayer = pGameMode->createPlayer(pLevel);
 		pLocalPlayer->resetPos();
-		m_pGameMode->initPlayer(pLocalPlayer);
+		pGameMode->initPlayer(pLocalPlayer);
 	}
 
 	if (pLocalPlayer)
 		pLocalPlayer->m_pMoveInput = m_pInputHolder->getMoveInput();
 
-	m_pGameMode->adjustPlayer(pLocalPlayer);
+	pGameMode->adjustPlayer(pLocalPlayer);
 
 	pLevel->validateSpawn();
 	pLevel->loadPlayer(*pLocalPlayer);
@@ -1217,6 +1245,8 @@ void Minecraft::setLevel(Level* pLevel, const std::string& text, LocalPlayer* pL
 		m_bPreparingLevel = true;
 		m_pPrepThread = new CThread(&Minecraft::prepareLevel_tspawn, this);
 
+		_initGameModes(*pLevel);
+
 		if (m_pLocalPlayer)
 			setGameMode(m_pLocalPlayer->getPlayerGameType());
 		else
@@ -1276,7 +1306,8 @@ ItemStack& Minecraft::getSelectedItem()
 	if (item.isEmpty())
 		return item;
 
-	if (m_pGameMode->isCreativeType())
+	GameMode* pGameMode = getLocalPlayerGameMode();
+	if (pGameMode && pGameMode->isCreativeType())
 	{
 		// Create new "unlimited" ItemStack for Creative mode
 		m_CurrItemStack = ItemStack(item.getId(), 999, item.getAuxValue());
@@ -1324,6 +1355,9 @@ void Minecraft::gotoMainMenu()
 {
 #if MC_PLATFORM_CONSOLE
 	m_pSoundEngine->playMusic();
+#else
+	if (getOptions()->getUiTheme() == UI_CONSOLE)
+		m_pSoundEngine->playMusic();
 #endif
 	getScreenChooser()->pushStartScreen();
 }

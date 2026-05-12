@@ -13,7 +13,7 @@ void TerrainParticle::_init(Tile* tile)
 {
 	m_pTile = tile;
 	m_tex = tile->m_TextureFrame;
-	field_F4 = tile->field_28;
+	m_gravity = tile->m_gravity;
 	m_rCol = m_gCol = m_bCol = 0.6f;
 	m_size *= 0.5f;
 }
@@ -63,8 +63,8 @@ void TerrainParticle::render(Tesselator& t, float f, float a4, float a5, float a
 	if (texture < 0)
 		texture += 15;
 
-	float texU_1 = (float(texX)         + 0.25f * field_E0) / 16.0f;
-	float texV_1 = (float(texture >> 4) + 0.25f * field_E4) / 16.0f;
+	float texU_1 = (float(texX)         + 0.25f * m_uo) / 16.0f;
+	float texV_1 = (float(texture >> 4) + 0.25f * m_vo) / 16.0f;
 
 	float posX = Mth::Lerp(m_oPos.x, m_pos.x, f) - xOff;
 	float posY = Mth::Lerp(m_oPos.y, m_pos.y, f) - yOff;

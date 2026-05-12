@@ -10,6 +10,7 @@
 #include "client/app/Minecraft.hpp"
 #include "client/gui/screens/IngameBlockSelectionScreen.hpp"
 #include "client/gui/screens/ChatScreen.hpp"
+#include "client/gui/screens/PauseScreen.hpp"
 #include "client/gui/screens/inventory/InventoryScreen.hpp"
 #include "client/renderer/entity/ItemRenderer.hpp"
 #include "client/renderer/renderer/RenderMaterialGroup.hpp"
@@ -111,7 +112,7 @@ void Gui::renderPumpkin(int var1, int var2)
 	currentShaderDarkColor = Color::WHITE;
 
 	m_pMinecraft->m_pTextures->setSmoothing(true);
-	m_pMinecraft->m_pTextures->loadAndBindTexture("/misc/pumpkinblur.png");
+	m_pMinecraft->m_pTextures->loadAndBindTexture("misc/pumpkinblur.png");
 	m_pMinecraft->m_pTextures->setSmoothing(false);
 
 	Tesselator& t = Tesselator::instance;
@@ -189,12 +190,12 @@ void Gui::render(float f, bool bHaveScreen, int mouseX, int mouseY)
 		matrix->translate(Vec3(0, -35, 0));
 		matrix->scale(mc.getOptions()->m_hudSize.get());
 	}
-	if (mc.m_pGameMode->canHurtPlayer())
+	if (mc.getLocalPlayerGameMode()->canHurtPlayer())
 	{
 		textures.loadAndBindTexture("gui/icons.png");
 
 		Tesselator& t = Tesselator::instance;
-		t.begin(0);
+		t.begin(160);
 		t.voidBeginAndEndCalls(true);
 
 		renderHearts(isPocket);
@@ -305,6 +306,29 @@ void Gui::handleClick(int clickID, int mouseX, int mouseY)
 	if (clickID != 1)
 		return;
 
+	// @TODO: add InGamePlayScreen at some point
+	if (m_pMinecraft->isTouchscreen())
+    {
+		int cenX = GuiWidth / 2;
+        int scaledMouseX = int(mouseX * GuiScale);
+        int scaledMouseY = int(mouseY * GuiScale);
+
+		if (scaledMouseY >= 1 && scaledMouseY < 19 && scaledMouseX >= cenX - 19 && scaledMouseX < cenX - 1)
+		{
+			m_pMinecraft->setScreen(new ChatScreen(false));
+			return;
+		}
+
+		if (scaledMouseY >= 1 && scaledMouseY < 19 && scaledMouseX >= cenX && scaledMouseX < cenX + 18)
+		{
+            if (m_pMinecraft->isGamePaused())
+                m_pMinecraft->resumeGame();
+            else
+                m_pMinecraft->pauseGame();
+            return;
+		}
+	}
+
 	int slot = getSlotIdAt(mouseX, mouseY);
 	if (slot == -1)
 		return;
@@ -312,7 +336,7 @@ void Gui::handleClick(int clickID, int mouseX, int mouseY)
 	// Final slot on touch opens inventory
 	if (m_pMinecraft->useTouchscreen() && slot == getNumSlots() - 1)
 	{
-		if (m_pMinecraft->m_pGameMode->isSurvivalType())
+		if (m_pMinecraft->getLocalPlayerGameMode()->isSurvivalType())
 			m_pMinecraft->setScreen(new InventoryScreen(m_pMinecraft->m_pLocalPlayer));
 		else
 			m_pMinecraft->setScreen(new IngameBlockSelectionScreen());
@@ -347,7 +371,7 @@ void Gui::handleKeyPressed(int keyCode)
 
 	if (options->isKey(KM_INVENTORY, keyCode))
 	{
-		if (m_pMinecraft->m_pGameMode->isSurvivalType())
+		if (m_pMinecraft->getLocalPlayerGameMode()->isSurvivalType())
 			m_pMinecraft->setScreen(new InventoryScreen(m_pMinecraft->m_pLocalPlayer));
 		else
 			m_pMinecraft->setScreen(new IngameBlockSelectionScreen);
@@ -645,9 +669,6 @@ void Gui::renderToolBar(float f, float alpha)
 
 	m_blitOffset = -90.0f;
 
-	// chat
-	//blit(width - 18, 0, 200, 82, 18, 18, 18, 18);
-
 	int nSlots = getNumSlots();
 	int hotbarWidth = 2 + nSlots * 20;
 
@@ -716,7 +737,8 @@ void Gui::renderToolBar(float f, float alpha)
 
 int Gui::getNumSlots()
 {
-	if (m_pMinecraft->useTouchscreen())
+    Minecraft& mc = *m_pMinecraft;
+    if (mc.getOptions()->getUiTheme() == UI_POCKET)
 		return 6;
 
 	return 9;

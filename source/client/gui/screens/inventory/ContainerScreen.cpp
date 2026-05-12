@@ -13,6 +13,7 @@ ContainerScreen::ContainerScreen(ContainerMenu* menu) :
     m_topPos(0),
     m_timeSlotDragged(0)
 {
+    m_uiTheme = UI_UNIVERSAL;
     m_bRenderPointer = true;
 }
 
@@ -276,7 +277,7 @@ void ContainerScreen::slotClicked(const MenuPointer& pointer, MouseButtonType bu
 void ContainerScreen::slotClicked(Slot* slot, int index, MouseButtonType button, bool quick)
 {
     _tryPlayInteractSound();
-    m_pMinecraft->m_pGameMode->handleInventoryMouseClick(m_pMenu->m_containerId, index, button, quick, m_pMinecraft->m_pLocalPlayer);
+    m_pMinecraft->getLocalPlayerGameMode()->handleInventoryMouseClick(m_pMenu->m_containerId, index, button, quick, m_pMinecraft->m_pLocalPlayer);
 }
 
 void ContainerScreen::slotClicked(const MenuPointer& pointer, MouseButtonType button)

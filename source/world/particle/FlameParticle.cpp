@@ -11,7 +11,7 @@
 FlameParticle::FlameParticle(Level* level, const Vec3& pos, const Vec3& dir) :
 	Particle(level, pos, dir)
 {
-	field_104 = 0.0f;
+	m_oSize = 0.0f;
 
 	m_vel = m_vel * 0.01f + dir;
 
@@ -23,7 +23,7 @@ FlameParticle::FlameParticle(Level* level, const Vec3& pos, const Vec3& dir) :
 	sharedRandom.genrand_int32();
 	sharedRandom.genrand_int32();
 
-	field_104 = m_size;
+	m_oSize = m_size;
 	m_rCol = m_gCol = m_bCol = 1.0f;
 	m_lifetime = int(8.0f / (0.2f + 0.8f * Mth::random())) + 4;
 	m_tex = PTI_FLAME;
@@ -38,8 +38,8 @@ void FlameParticle::tick()
 {
 	m_oPos = m_pos;
 
-	m_timer++;
-	if (m_timer > m_lifetime)
+	m_age++;
+	if (m_age > m_lifetime)
 		remove();
 
 	move(m_vel);
@@ -55,7 +55,7 @@ void FlameParticle::tick()
 
 void FlameParticle::render(Tesselator& t, float f, float a, float b, float c, float d, float e)
 {
-	float mult = float(m_timer + f) / float(m_lifetime);
-	m_size = field_104 * (1.0f - 0.5f * mult * mult);
+	float mult = float(m_age + f) / float(m_lifetime);
+	m_size = m_oSize * (1.0f - 0.5f * mult * mult);
 	Particle::render(t, f, a, b, c, d, e);
 }

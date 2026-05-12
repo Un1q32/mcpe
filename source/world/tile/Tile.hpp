@@ -49,10 +49,10 @@ public: // types
 	};
 	struct SoundType
 	{
-		std::string m_name;
+		std::string name;
 		float volume, pitch;
 
-		SoundType(const std::string& name, float volume, float pitch) : m_name(name), volume(volume), pitch(pitch) {}
+		SoundType(const std::string& name, float volume, float pitch) : name(name), volume(volume), pitch(pitch) {}
 	};
 
 public: // virtual functions
@@ -254,7 +254,7 @@ public:
 	TileID m_ID;
 	AABB m_aabb;
 	const SoundType* m_pSound;
-	float field_28;
+	float m_gravity; // only affects particle gravity at the moment
 	Material* m_pMaterial;
 	float m_friction;
 	float m_hardness;

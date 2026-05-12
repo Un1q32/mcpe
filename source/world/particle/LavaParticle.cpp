@@ -12,12 +12,12 @@
 LavaParticle::LavaParticle(Level* level, const Vec3& pos) :
 	Particle(level, pos, Vec3::ZERO)
 {
-	field_104 = 0.0f;
+	m_oSize = 0.0f;
 
 	m_vel *= 0.8f;
 	m_vel.y = sharedRandom.nextFloat() * 0.4f + 0.05f;
 	m_rCol = m_gCol = m_bCol = 1.0f;
-	field_104 = m_size = m_size * (0.2f + 2 * sharedRandom.nextFloat());
+	m_oSize = m_size = m_size * (0.2f + 2 * sharedRandom.nextFloat());
 	m_tex = PTI_LAVA;
 	m_lifetime = int(16.0f / (0.2f + 0.8f * Mth::random()));
 }
@@ -31,11 +31,11 @@ void LavaParticle::tick()
 {
 	m_oPos = m_pos;
 
-	m_timer++;
-	if (m_timer > m_lifetime)
+	m_age++;
+	if (m_age > m_lifetime)
 		remove();
 
-	float a = float(m_timer) / float(m_lifetime);
+	float a = float(m_age) / float(m_lifetime);
 	float b = sharedRandom.nextFloat();
 	if (a < b)
 	{
@@ -55,7 +55,7 @@ void LavaParticle::tick()
 
 void LavaParticle::render(Tesselator& t, float f, float a, float b, float c, float d, float e)
 {
-	float mult = float(m_timer + f) / float(m_lifetime);
-	m_size = field_104 * (1.0f - mult * mult);
+	float mult = float(m_age + f) / float(m_lifetime);
+	m_size = m_oSize * (1.0f - mult * mult);
 	Particle::render(t, f, a, b, c, d, e);
 }

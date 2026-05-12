@@ -13,7 +13,7 @@
 GameMode::GameMode(Minecraft* pMinecraft, Level& level) :
 	_level(level),
 	m_pMinecraft(pMinecraft),
-	field_8(0)
+	m_bInstaBuild(0)
 {
 }
 
@@ -46,7 +46,7 @@ bool GameMode::destroyBlock(Player* player, const TilePos& pos, Facing::Name fac
 		return false;
 
 
-	_level.playSound(pos + 0.5f, "step." + oldTile->m_pSound->m_name,
+	_level.playSound(pos + 0.5f, "step." + oldTile->m_pSound->name,
 		(oldTile->m_pSound->volume * 0.5f) + 0.5f, oldTile->m_pSound->pitch * 0.8f);
 
 	oldTile->destroy(&_level, pos, tileData);
@@ -100,7 +100,7 @@ float GameMode::getEntityReachDistance() const
 
 LocalPlayer* GameMode::createPlayer(Level* pLevel)
 {
-	return new LocalPlayer(m_pMinecraft, pLevel, m_pMinecraft->m_pUser, pLevel->getDefaultGameType(), _level.m_pDimension->field_50);
+	return new LocalPlayer(m_pMinecraft, pLevel, m_pMinecraft->m_pUser, pLevel->getDefaultGameType(), _level.m_pDimension->m_id);
 }
 
 void GameMode::initPlayer(Player* pPlayer)
@@ -144,8 +144,14 @@ void GameMode::handleCloseInventory(int a, Player* player)
 bool GameMode::useItem(Player* player, Level* level, ItemStack& item)
 {
 	int oldCount = item.m_count;
+	ItemStack* result = item.use(level, player);
 
-	if (&item == item.use(level, player))
+	if (level->m_bIsClientSide)
+	{
+		_level.m_pRakNetInstance->send(new UseItemPacket(TilePos::ZERO, 255, player->m_EntityID, item));
+	}
+
+	if (&item == result)
 		return item.m_count != oldCount;
 
 	return true;
@@ -153,6 +159,12 @@ bool GameMode::useItem(Player* player, Level* level, ItemStack& item)
 
 bool GameMode::useItemOn(Player* player, Level* level, ItemStack& item, const TilePos& pos, Facing::Name face)
 {
+	// Sending this packet regardless is intentional. PE does this, Java does this.
+	if (level->m_bIsClientSide)
+	{
+		_level.m_pRakNetInstance->send(new UseItemPacket(pos, face, player->m_EntityID, item));
+	}
+
 	TileID tile = level->getTile(pos);
 	if (tile == Tile::invisible_bedrock->m_ID)
 		return false;
@@ -166,11 +178,6 @@ bool GameMode::useItemOn(Player* player, Level* level, ItemStack& item, const Ti
 	else if (!item.isEmpty())
 	{
 		success = item.useOn(player, level, pos, face);
-	}
-
-	if (success)
-	{
-		_level.m_pRakNetInstance->send(new UseItemPacket(pos, face, player->m_EntityID, item));
 	}
 
 	return success;

@@ -32,6 +32,10 @@ EntityRenderer::EntityRenderer()
 	m_pDispatcher = nullptr;
 }
 
+EntityRenderer::~EntityRenderer()
+{
+}
+
 bool EntityRenderer::bindTexture(const std::string& file, bool isRequired)
 {
 	if (!m_pDispatcher || !m_pDispatcher->m_pTextures)
@@ -191,6 +195,7 @@ void EntityRenderer::renderFlat(const AABB& aabb)
 
 void EntityRenderer::postRender(const Entity& entity, const Vec3& pos, float rot, float a)
 {
+	// Java had a rendering bug in the original, caused by the heightOffset being applied to the y position
 	if (m_pDispatcher->m_pOptions && m_pDispatcher->m_pOptions->m_fancyGraphics.get() && areShadowsAvailable() && m_shadowRadius > 0.0f)
 	{
 		float dist = m_pDispatcher->distanceToSqr(entity.m_pos);

@@ -38,7 +38,7 @@ public:
 		if (m_count > 0)
 			downHeap(0);
 
-		pNode->field_0 = -1;
+		pNode->heapIdx = -1;
 		return pNode;
 	}
 
@@ -52,15 +52,14 @@ public:
 		return m_count;
 	}
 
-	void setDistance(Node* pNode, float distance)
-	{
-		float oldDistance = pNode->field_C;
-		pNode->field_C = distance;
+	void setDistance(Node* pNode, float distance) {
+		float oldDistance = pNode->f;
+		pNode->f = distance;
 
 		if (oldDistance >= distance)
-			downHeap(pNode->field_0);
+			downHeap(pNode->heapIdx);
 		else
-			inlined0(pNode->field_0);
+			inlined0(pNode->heapIdx);
 	}
 
 private:

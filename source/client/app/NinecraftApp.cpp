@@ -199,6 +199,8 @@ void NinecraftApp::_initAll()
 	m_pLevelStorageSource = new ExternalFileLevelStorageSource(platform()->m_externalStorageDir);
 #endif
 
+	_initInput();
+
 	m_pGui = new Gui(this);
 	m_pFont = new Font(getOptions(), "font/default.png", m_pTextures);
 	m_pLevelRenderer = new LevelRenderer(this, m_pTextures);
@@ -206,10 +208,8 @@ void NinecraftApp::_initAll()
 	m_pParticleEngine = new ParticleEngine(m_pLevel, m_pTextures);
 	m_pUser = new User(getOptions()->m_playerName.get(), "");
 
-	_initInput();
-
 	platform()->initSoundSystem();
-	m_pSoundEngine = new SoundEngine(platform()->getSoundSystem(), 20.0f); // 20.0f on 0.7.0
+	m_pSoundEngine = new SoundEngine(platform()->getSoundSystem(), SOUND_MAX_DISTANCE);
 	m_pSoundEngine->init(getOptions());
 
 	Language::singleton().init(getOptions());

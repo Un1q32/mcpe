@@ -125,11 +125,10 @@ protected:
 	int32_t m_itemInUseDuration;
 
 public:
-	//TODO
 	Inventory* m_pInventory;
 	InventoryMenu* m_pInventoryMenu;
 	ContainerMenu* m_pContainerMenu;
-	uint8_t field_B94;
+	int8_t m_userType; // Classic leftover? possibly for a player rank?
 	int m_jumpTriggerTime;
 	int m_score;
 	float m_oBob;
@@ -139,11 +138,8 @@ public:
 	int m_dimension;
 	RakNet::RakNetGUID m_guid;
 	bool m_bFlying;
-	//TODO
 	TilePos m_respawnPos;
-	//TODO
 	bool m_bHasRespawnPos;
-	//TODO
 	bool m_destroyingBlock;
 };
 

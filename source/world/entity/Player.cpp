@@ -32,7 +32,7 @@ Player::Player(Level* pLevel, GameType playerGameType) : Mob(pLevel)
 	_init();
 	m_pDescriptor = &EntityTypeDescriptor::player;
 	m_pInventory = nullptr;
-	field_B94 = 0;
+	m_userType = 0;
 	m_name = "";
 	m_bHasRespawnPos = false;
 
@@ -205,7 +205,7 @@ void Player::aiStep()
     m_pInventory->tick();
 #endif
 	m_oBob = m_bob;
-    //Mob::aiStep(); // called in Java, calling here results in 2x speed player movement
+    //Mob::aiStep(); // @PARITY: called in Java, calling here results in 2x speed player movement
 	float velLen = Mth::sqrt(m_vel.x * m_vel.x + m_vel.z * m_vel.z);
 	float velYAtan = Mth::atan(m_vel.y * -0.2f), x1 = 0.0f;
 
@@ -522,7 +522,7 @@ void Player::setRespawnPos(const TilePos& pos)
 
 /*void Player::drop()
 {
-	// From b1.2_02, doesn't exist in PE
+	// @PARITY: From b1.2_02, doesn't exist in PE
 	// Isn't called anywhere, but is overriden in MultiplayerLocalPlayer with a PlayerActionPacket
 	ItemStack* item = getSelectedItem();
 	if (!item)

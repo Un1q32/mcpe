@@ -83,8 +83,8 @@ void HumanoidMobRenderer::additionalRendering(const Mob& mob, float f)
 			if (TileRenderer::canRender(Tile::tiles[headGear.getId()]->getRenderShape()))
 			{
 				matrix->translate(Vec3(0.0f, -0.25f, 0.0f));
-				matrix->rotate(180.0f, Vec3(0.0f, 1.0f, 0.0f));
-				matrix->scale(Vec3(fScale, -fScale, fScale));
+				matrix->rotate(180.0f, Vec3::UNIT_X);
+				matrix->scale(Vec3(fScale, fScale, fScale));
 			}
 
 			m_pDispatcher->m_pItemInHandRenderer->renderItem(mob, headGear, f);
@@ -150,7 +150,7 @@ void HumanoidMobRenderer::render(const Entity& entity, const Vec3& pos, float f1
 		Vec3 pos2 = pos;
 		pos2.y -= 0.125f;
 		MobRenderer::render(entity, pos2, f1, f2);
-		// https://github.com/ReMinecraftPE/mcpe/pull/197/#discussion_r2437985914
+		// https://github.com/nbcraft-org/nbcraft/pull/197/#discussion_r2437985914
 		m_armorMain->m_bSneaking = m_armorLeggings->m_bSneaking = m_pHumanoidModel->m_bSneaking = false;
 	}
 	else

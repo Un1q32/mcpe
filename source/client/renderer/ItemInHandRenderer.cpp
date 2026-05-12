@@ -9,6 +9,7 @@
 #include "ItemInHandRenderer.hpp"
 #include "common/Mth.hpp"
 #include "client/app/Minecraft.hpp"
+#include "client/renderer/entity/HumanoidMobRenderer.hpp"
 #include "client/renderer/renderer/RenderMaterialGroup.hpp"
 #include "renderer/ShaderConstants.hpp"
 #include "Lighting.hpp"
@@ -301,7 +302,7 @@ void ItemInHandRenderer::renderScreenEffect(float a)
 
     if (player->isUnderLiquid(Material::water))
     {
-        if (textures->loadAndBindTexture("/misc/water.png", false))
+        if (textures->loadAndBindTexture("misc/water.png", false))
         {
             renderWater(a);
         }

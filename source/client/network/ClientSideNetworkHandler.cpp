@@ -146,7 +146,7 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& rakGuid, StartGa
 
 	m_pLevel->m_bIsClientSide = true;
 
-	MultiplayerLocalPlayer *pLocalPlayer = new MultiplayerLocalPlayer(m_pMinecraft, m_pLevel, m_pMinecraft->m_pUser, settings.m_gameType, m_pLevel->m_pDimension->field_50);
+	MultiplayerLocalPlayer *pLocalPlayer = new MultiplayerLocalPlayer(m_pMinecraft, m_pLevel, m_pMinecraft->m_pUser, settings.m_gameType, m_pLevel->m_pDimension->m_id);
 	pLocalPlayer->m_guid = ((RakNet::RakPeer*)m_pServerPeer)->GetMyGUID();
 	pLocalPlayer->m_EntityID = pStartGamePkt->m_entityId;
 	
@@ -411,7 +411,7 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& rakGuid, PlaceBl
 	pTile->setPlacedBy(m_pLevel, pos, pPlayer);
 
 	const Tile::SoundType* pSound = pTile->m_pSound;
-	m_pLevel->playSound(pos + 0.5f, "step." + pSound->m_name, 0.5f * (1.0f + pSound->volume), 0.8f * pSound->pitch);
+	m_pLevel->playSound(pos + 0.5f, "step." + pSound->name, 0.5f * (1.0f + pSound->volume), 0.8f * pSound->pitch);
 }
 
 void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& rakGuid, RemoveBlockPacket* pRemoveBlockPkt)
@@ -445,7 +445,7 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& rakGuid, RemoveB
 	if (pTile && setTileResult)
 	{
 		const Tile::SoundType* pSound = pTile->m_pSound;
-		m_pLevel->playSound(pos + 0.5f, "step." + pSound->m_name, 0.5f * (1.0f + pSound->volume), 0.8f * pSound->pitch);
+		m_pLevel->playSound(pos + 0.5f, "step." + pSound->name, 0.5f * (1.0f + pSound->volume), 0.8f * pSound->pitch);
 
 		pTile->destroy(m_pLevel, pos, auxValue);
 	}
@@ -622,11 +622,11 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& rakGuid, Interac
 	{
 	case InteractPacket::INTERACT:
 		pPlayer->swing();
-		m_pMinecraft->m_pGameMode->interact(pPlayer, pTarget);
+		m_pMinecraft->getPlayerGameMode(*pPlayer)->interact(pPlayer, pTarget);
 		break;
 	case InteractPacket::ATTACK:
 		pPlayer->swing();
-		m_pMinecraft->m_pGameMode->attack(pPlayer, pTarget);
+		m_pMinecraft->getPlayerGameMode(*pPlayer)->attack(pPlayer, pTarget);
 		break;
 	default:
 		LOG_W("Received unkown action in InteractPacket: %d", pkt->m_actionType);
@@ -830,7 +830,7 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& guid, ContainerS
 
 void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& guid, LevelDataPacket* packet)
 {
-	if (!m_pLevel) return;
+	/*if (!m_pLevel) return;
 
 	const int uncompMagic = 12847812, compMagic = 58712758, chunkSepMagic = 284787658;
 	RakNet::BitStream* bs = &packet->m_data, bs2;
@@ -847,7 +847,7 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& guid, LevelDataP
 	if (magicNum == compMagic)
 	{
 		// Decompress it before we handle it.
-		int uncompSize = 0, compSize = 0;
+		uint32_t uncompSize = 0, compSize = 0;
 		bs->Read(uncompSize);
 		bs->Read(compSize);
 
@@ -880,7 +880,7 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& guid, LevelDataP
 		bs->Read(magicNum);
 	}
 
-	int chunksX = 0, chunksZ = 0;
+	uint32_t chunksX = 0, chunksZ = 0;
 	bs->Read(chunksX);
 	bs->Read(chunksZ);
 
@@ -906,7 +906,7 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& guid, LevelDataP
 			uint8_t ptype = 0;
 
 			// read the data size. This'll let us know how much to read.
-			int dataSize = 0;
+			uint32_t dataSize = 0;
 			bs->Read(dataSize);
 
 			LevelChunk* pChunk = m_pLevel->getChunk(cp);
@@ -939,7 +939,7 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& guid, LevelDataP
 
 	// All chunks are loaded. Also flush all the updates we've buffered.
 	m_chunksRequested = C_MAX_CHUNKS;
-	flushAllBufferedUpdates();
+	flushAllBufferedUpdates();*/
 }
 
 bool ClientSideNetworkHandler::areAllChunksLoaded()

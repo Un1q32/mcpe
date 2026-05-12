@@ -11,7 +11,7 @@
 RedDustParticle::RedDustParticle(Level* level, const Vec3& pos, const Vec3& dir) :
 	Particle(level, pos, Vec3::ZERO)
 {
-	field_104 = 0.0f;
+	m_oSize = 0.0f;
 
 	m_vel = dir + m_vel * 0.1f;
 
@@ -20,7 +20,7 @@ RedDustParticle::RedDustParticle(Level* level, const Vec3& pos, const Vec3& dir)
 	m_gCol  = f * dir.y						   * (Mth::random() * 0.2f + 0.8f);
 	m_bCol = f * dir.z						   * (Mth::random() * 0.2f + 0.8f);
 
-	field_104 = m_size = m_size * 0.75f;
+	m_oSize = m_size = m_size * 0.75f;
 
 	m_bNoPhysics = false;
 	m_lifetime = int(8.0f / (0.2f + 0.8f * Mth::random()));
@@ -28,13 +28,13 @@ RedDustParticle::RedDustParticle(Level* level, const Vec3& pos, const Vec3& dir)
 
 void RedDustParticle::render(Tesselator& t, float f, float a, float b, float c, float d, float e)
 {
-	float mult = 32.0f * (float(m_timer + f) / float(m_lifetime));
+	float mult = 32.0f * (float(m_age + f) / float(m_lifetime));
 	if (mult < 0.0f)
 		mult = 0.0f;
 	if (mult > 1.0f)
 		mult = 1.0f;
 
-	m_size = field_104 * mult;
+	m_size = m_oSize * mult;
 	Particle::render(t, f, a, b, c, d, e);
 }
 
@@ -42,12 +42,12 @@ void RedDustParticle::tick()
 {
 	m_oPos = m_pos;
 
-	m_timer++;
-	if (m_timer > m_lifetime)
+	m_age++;
+	if (m_age > m_lifetime)
 		remove();
 
 	m_vel.y += 0.004f;
-	m_tex = -8 * m_timer / m_lifetime + 7;
+	m_tex = -8 * m_age / m_lifetime + 7;
 
 	move(m_vel);
 

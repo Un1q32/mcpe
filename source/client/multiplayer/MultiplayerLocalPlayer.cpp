@@ -65,7 +65,7 @@ bool MultiplayerLocalPlayer::hurt(Entity* pAttacker, int damage)
             }
 
             float ang = atan2f(zd, xd);
-            v020_field_104 = ang * (180.0f / float(M_PI)) - m_rot.x;
+            m_hurtDir = ang * (180.0f / float(M_PI)) - m_rot.x;
 
             knockback(pAttacker, damage, xd, zd);
         }
@@ -80,7 +80,7 @@ void MultiplayerLocalPlayer::heal(int health)
 
 /*void MultiplayerLocalPlayer::drop()
 {
-    // From Java
+    // @PARITY: From Java
 	m_pLevel->m_pRakNetInstance->send(new PlayerActionPacket(PlayerActionPacket::DROP_ITEM))
 }*/
 

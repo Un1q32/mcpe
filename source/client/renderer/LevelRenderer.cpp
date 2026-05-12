@@ -302,7 +302,7 @@ void LevelRenderer::_renderSunrise(float alpha)
 
 		int steps = 16;
 
-		t.begin(mce::PRIMITIVE_MODE_TRIANGLE_STRIP, steps * 2);
+		t.begin(mce::PRIMITIVE_MODE_TRIANGLE_STRIP, (steps * 2) + 2);
 
 		for (int i = 0; i <= steps; i++)
 		{
@@ -1494,7 +1494,7 @@ void LevelRenderer::playSound(const std::string& name, const Vec3& pos, float vo
 		maxDist = 256.0f;
 	}
 
-	if (maxDist * maxDist > playerDist)
+	if (playerDist <= maxDist * maxDist)
 		m_pMinecraft->m_pSoundEngine->play(name, pos, volume, pitch);
 }
 
@@ -1881,11 +1881,11 @@ void LevelRenderer::renderAdvancedClouds(float alpha)
 #endif
 		}
 
+		t.begin(3216); // it doesn't get any bigger than this
 		for (int xPos = -radius + 1; xPos <= radius; xPos++)
 		{
 			for (int zPos = -radius + 1; zPos <= radius; zPos++)
 			{
-				t.begin(0);
 				float xx = xPos * D;
 				float zz = zPos * D;
 				float xp = xx - xoffs;
@@ -1964,10 +1964,10 @@ void LevelRenderer::renderAdvancedClouds(float alpha)
 						t.vertexUV((xp + 0.0f), (yy + 0.0f), (zp + i + 1.0f - e), ((xx + 0.0f) * scale + uo), ((zz + i + 0.5f) * scale + vo));
 					}
 				}
-
-				t.draw(m_materials.clouds);
 			}
 		}
+
+		t.draw(m_materials.clouds);
 	}
 
 	if (yy > 1.0f)

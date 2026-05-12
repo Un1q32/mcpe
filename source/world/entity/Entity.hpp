@@ -20,10 +20,6 @@
 #include "SynchedEntityData.hpp"
 #include "EntityTypeDescriptor.hpp"
 
-#define C_ENTITY_FLAG_ONFIRE (0)
-#define C_ENTITY_FLAG_SNEAKING (1)
-#define C_ENTITY_FLAG_RIDING (2)
-
 class Level;
 class Player;
 class ItemStack;
@@ -82,6 +78,7 @@ public:
 			STOP_ATTACKING
 		};
 	};
+	// Was called EntityRendererId in PE
 	enum RenderType
 	{
 		RENDER_NONE,
@@ -105,6 +102,15 @@ public:
 		// custom
 		RENDER_FALLING_TILE = 50
 	};
+	enum Flags
+	{
+		FLAG_ON_FIRE,
+		FLAG_SNEAKING,
+		FLAG_RIDING,
+		FLAG_SPRINTING,
+		FLAG_USING_ITEM,
+		FLAGS_COUNT
+	};
 
 private:
 	void _init();
@@ -116,6 +122,9 @@ public:
 public:
 	virtual bool getSharedFlag(SharedFlag flag) const;
 	virtual void setSharedFlag(SharedFlag flag, bool value);
+	virtual void playStepSound(const TilePos& pos, TileID tileId);
+
+public:
 	virtual void reset();
 	virtual void setLevel(Level*);
 	virtual void removed();
@@ -154,7 +163,7 @@ public:
 	virtual float distanceToSqr(const Vec3& pos) const;
 	virtual float distanceTo(const Vec3& pos) const;
 	virtual float distanceToSqr(const Entity*) const;
-	virtual int interactPreventDefault();
+	virtual bool interactPreventDefault() const;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 	virtual bool interact(Player*);
@@ -165,10 +174,10 @@ public:
 	virtual bool isPickable() const { return false; }
 	virtual bool isPushable() const { return false; }
 	virtual bool isShootable() const { return false; }
-	virtual bool isOnFire() const { return m_fireTicks > 0 || getSharedFlag(C_ENTITY_FLAG_ONFIRE); }
-	virtual bool isRiding() const { return getRiding() || getSharedFlag(C_ENTITY_FLAG_RIDING); }
-	virtual bool isSneaking() const { return getSharedFlag(C_ENTITY_FLAG_SNEAKING); }
-	virtual void setSneaking(bool value) { setSharedFlag(C_ENTITY_FLAG_SNEAKING, value); }
+	virtual bool isOnFire() const { return m_fireTicks > 0 || getSharedFlag(FLAG_ON_FIRE); }
+	virtual bool isRiding() const { return getRiding() || getSharedFlag(FLAG_RIDING); }
+	virtual bool isSneaking() const { return getSharedFlag(FLAG_SNEAKING); }
+	virtual void setSneaking(bool value) { setSharedFlag(FLAG_SNEAKING, value); }
 	virtual bool isAlive() const { return m_bRemoved; }
 	virtual bool isPlayer() const { return false; }
 	virtual bool isMob() const { return false; }
@@ -247,11 +256,8 @@ public:
 	bool m_bInAChunk;
 	ChunkPos m_chunkPos;
 	int m_chunkPosY;
-	int field_20; // unused Vec3?
-	int field_24;
-	int field_28;
 	Entity::ID m_EntityID;
-	float field_30;
+	float m_viewScale;
 	//TileSource* m_pTileSource;
 	DimensionId m_dimensionId;
 	bool m_bRiding;
@@ -277,7 +283,7 @@ public:
 	float m_heightOffset;
 	float m_bbWidth;
 	float m_bbHeight;
-	float field_90;
+	float m_walkDistO;
 	float m_walkDist;
 	Vec3 m_posPrev;
 	float m_ySlideOffset;

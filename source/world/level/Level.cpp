@@ -12,6 +12,7 @@
 
 #include "GameMods.hpp"
 #include "common/Logger.hpp"
+#include "nbt/CompoundTag.hpp"
 #include "network/RakNetInstance.hpp"
 #include "network/packets/EntityEventPacket.hpp"
 #include "network/packets/SetEntityDataPacket.hpp"
@@ -80,9 +81,10 @@ Level::~Level()
 	SAFE_DELETE(m_pPathFinder);
 	SAFE_DELETE(m_pMobSpawner);
 
-	for (EntityMap::iterator it = m_entities.begin(); it != m_entities.end(); it++)
+	const size_t size = m_entities.size();
+	for (size_t i = 0; i < size; ++i)
 	{
-		Entity* pEnt = it->second;
+		Entity* pEnt = m_entities[i];
 		
 		//you better HOPE this is freed by Minecraft! (or a NetworkHandler)
 		//Really should have used shared pointers and stuff.
@@ -557,7 +559,7 @@ void Level::updateLight(const LightLayer& ll, const TilePos& tilePos1, const Til
 {
 	static int nUpdateLevels;
 
-	if ((m_pDimension->field_E && &ll == &LightLayer::Sky) || !m_bUpdateLights)
+	if ((m_pDimension->m_bHasCeiling && &ll == &LightLayer::Sky) || !m_bUpdateLights)
 		return;
 
 	nUpdateLevels++;
@@ -609,7 +611,7 @@ void Level::updateLight(const LightLayer& ll, const TilePos& tilePos1, const Til
 
 void Level::updateLightIfOtherThan(const LightLayer& ll, const TilePos& tilePos, int bright)
 {
-	if (m_pDimension->field_E && &ll == &LightLayer::Sky)
+	if (m_pDimension->m_bHasCeiling && &ll == &LightLayer::Sky)
 		return;
 
 	if (!hasChunkAt(tilePos))
@@ -1335,6 +1337,19 @@ bool Level::addEntity(Entity* pEnt)
 	return true;
 }
 
+GameType Level::getLoadedPlayerGameType() const
+{
+	GameType gameType = m_pLevelData->getGameType();
+
+	const CompoundTag* tag = m_pLevelData->getLoadedPlayerTag();
+	if (tag && tag->contains("playerGameType"))
+	{
+		gameType = (GameType)tag->getInt32("playerGameType");
+	}
+
+	return gameType;
+}
+
 void Level::loadPlayer(Player& player)
 {
 	const CompoundTag* tag = m_pLevelData->getLoadedPlayerTag();
@@ -1620,21 +1635,25 @@ void Level::addListener(LevelListener* listener)
 
 void Level::tickPendingTicks(bool b)
 {
-	int size = 10000; // note: 65,536 in Minecraft Java
+#if MC_PLATFORM_MOBILE
+	int size = 100; // PE 0.1.3
+#else
+	int size = 1000; // Java b1.2_02
+#endif
 	if (size > int(m_pendingTicks.size()))
 		size = int(m_pendingTicks.size());
 
 	for (int i = 0; i < size; i++)
 	{
 		const TickNextTickData& t = *m_pendingTicks.begin();
-		if (!b && t.m_delay > m_pLevelData->getTime())
+		if (!b && t.delay > m_pLevelData->getTime())
 			break;
 
-		if (hasChunksAt(t.field_4 - 8, t.field_4 + 8))
+		if (hasChunksAt(t.tilePos - 8, t.tilePos + 8))
 		{
-			TileID tile = getTile(t.field_4);
-			if (tile == t.field_10 && tile > 0)
-				Tile::tiles[tile]->tick(this, t.field_4, &m_random);
+			TileID tile = getTile(t.tilePos);
+			if (tile == t.tileId && tile > 0)
+				Tile::tiles[tile]->tick(this, t.tilePos, &m_random);
 		}
 
 		m_pendingTicks.erase(m_pendingTicks.begin());
@@ -1666,7 +1685,9 @@ void Level::tickTiles()
 		ChunkPos pos = *it;
 		LevelChunk* pChunk = getChunk(pos);
 
-		for (int i = 0; i < 80; i++)
+		// @PARITY: 80 on Java
+		// changed from 80 to 20 in PE 0.2.0
+		for (int i = 0; i < 20; i++)
 		{
 			m_randValue = (int64_t)m_randValue * 3 + m_addend;
 			int rand = m_randValue >> 2;
@@ -1966,9 +1987,9 @@ void Level::addToTickNextTick(const TilePos& tilePos, int d, int delay)
 		if (!hasChunksAt(tilePos, 8))
 			return;
 
-		TileID tile = getTile(tntd.field_4);
-		if (tile > 0 && tile == tntd.field_10)
-			Tile::tiles[tntd.field_10]->tick(this, tntd.field_4, &m_random);
+		TileID tile = getTile(tntd.tilePos);
+		if (tile > 0 && tile == tntd.tileId)
+			Tile::tiles[tntd.tileId]->tick(this, tntd.tilePos, &m_random);
 	}
 	else
 	{

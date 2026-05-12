@@ -11,6 +11,7 @@
 #include "Utils.hpp"
 
 #include <cstring>
+#include <stack>
 
 #if MC_PLATFORM_WINPC
 
@@ -146,10 +147,35 @@ void closedir(DIR* dir)
 
 bool createFolderIfNotExists(const char* pDir)
 {
-	if (!XPL_ACCESS(pDir, 0))
+	if (XPL_ACCESS(pDir, 0) == 0)
 		return true;
+	size_t pathlen = strlen(pDir);
+	std::stack<std::string> st;
 
-	return XPL_MKDIR(pDir, 0755) == 0;
+	for (size_t i = pathlen - 1; i > 0; --i)
+	{
+		if (pDir[i] == '/'
+#ifdef _WIN32
+				|| pDir[i] == '\\'
+#endif
+		   )
+		{
+			std::string path(pDir, i);
+			if (XPL_ACCESS(path.c_str(), 0) == 0)
+				break;
+			st.push(path);
+		}
+	}
+	while (!st.empty())
+	{
+		if (XPL_MKDIR(st.top().c_str(), 0755) != 0)
+			return false;
+		st.pop();
+	}
+
+	if (XPL_MKDIR(pDir, 0755) != 0)
+		return false;
+	return true;
 }
 
 bool DeleteDirectory(const std::string& name2, bool unused)

@@ -11,8 +11,6 @@
 ExplodeParticle::ExplodeParticle(Level* level, const Vec3& pos, const Vec3& dir) :
 	Particle(level, pos, dir)
 {
-	field_104 = 0.0f;
-
 	m_vel.x = dir.x + 0.05f * (2.0f * Mth::random() - 1.0f);
 	m_vel.y = dir.y + 0.05f * (2.0f * Mth::random() - 1.0f);
 	m_vel.z = dir.z + 0.05f * (2.0f * Mth::random() - 1.0f);
@@ -26,12 +24,12 @@ void ExplodeParticle::tick()
 {
 	m_oPos = m_pos;
 	
-	m_timer++;
-	if (m_timer > m_lifetime)
+	m_age++;
+	if (m_age > m_lifetime)
 		remove();
 
 	m_vel.y += 0.004f;
-	m_tex = -8 * m_timer / m_lifetime + 7;
+	m_tex = -8 * m_age / m_lifetime + 7;
 
 	move(m_vel);
 
