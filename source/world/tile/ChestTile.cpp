@@ -176,16 +176,16 @@ bool ChestTile::use(Level* level, const TilePos& pos, Player* player)
     if (level->isSolidTile(pos.above()))
         return true;
     
-    if (level->getTile(pos.west()) == m_ID && level->isSolidTile(pos + TilePos(-1, 1, 0)))
+    if (level->getTile(pos.west()) == m_ID && level->isSolidTile(pos.west().above()))
         return true;
 
-    if (level->getTile(pos.east()) == m_ID && level->isSolidTile(pos + TilePos(1, 1, 0)))
+    if (level->getTile(pos.east()) == m_ID && level->isSolidTile(pos.east().above()))
         return true;
 
-    if (level->getTile(pos.north()) == m_ID && level->isSolidTile(pos + TilePos(0, 1, -1)))
+    if (level->getTile(pos.north()) == m_ID && level->isSolidTile(pos.north().above()))
         return true;
 
-    if (level->getTile(pos.south()) == m_ID && level->isSolidTile(pos + TilePos(0, 1, 1)))
+    if (level->getTile(pos.south()) == m_ID && level->isSolidTile(pos.south().above()))
         return true;
 
     TileEntity* tileEnt = level->getTileEntity(pos);
