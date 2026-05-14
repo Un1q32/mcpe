@@ -20,7 +20,7 @@ public:
 
 	void refreshContainer(ContainerMenu* menu, const std::vector<ItemStack>& items) override;
 	void slotChanged(ContainerMenu* menu, Container::SlotID slotId, Slot* slot, ItemStack& item, bool isResultSlot) override;
-	void setContainerData(ContainerMenu* menu, Container::SlotID slotId, int value) override;
+	void setContainerData(ContainerMenu* menu, int id, int value) override;
 
 	void doCloseContainer();
 	void setContainerMenu(ContainerMenu* menu);

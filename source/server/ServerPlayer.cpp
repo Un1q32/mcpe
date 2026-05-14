@@ -133,10 +133,10 @@ void ServerPlayer::slotChanged(ContainerMenu* menu, Container::SlotID slotId, Sl
 #endif
 }
 
-void ServerPlayer::setContainerData(ContainerMenu* menu, Container::SlotID slotId, int value)
+void ServerPlayer::setContainerData(ContainerMenu* menu, int id, int value)
 {
 #if NETWORK_PROTOCOL_VERSION >= 5
-	m_pLevel->m_pRakNetInstance->send(new ContainerSetDataPacket(menu->m_containerId, slotId, value));
+	m_pLevel->m_pRakNetInstance->send(new ContainerSetDataPacket(menu->m_containerId, id, value));
 #endif
 }
 

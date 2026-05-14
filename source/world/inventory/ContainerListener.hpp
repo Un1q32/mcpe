@@ -15,5 +15,5 @@ public:
     virtual void refreshContainer(ContainerMenu* menu, const std::vector<ItemStack>& items) {}
     virtual void refreshContainerItems(ContainerMenu* menu);
     virtual void slotChanged(ContainerMenu* menu, Container::SlotID slotId, Slot* slot, ItemStack& item, bool isResultSlot) {}
-    virtual void setContainerData(ContainerMenu* menu, Container::SlotID slotId, int value) {}
+    virtual void setContainerData(ContainerMenu* menu, int id, int value) {}
 };
