@@ -42,6 +42,9 @@ void ServerPlayer::tick()
 {
 	Player::tick();
 
+	if (m_pContainerMenu)
+		m_pContainerMenu->broadcastChanges();
+
 	if (m_health != m_lastHealth)
 	{
 		m_pLevel->m_pRakNetInstance->send(m_guid, new SetHealthPacket(m_health));
